@@ -1,0 +1,19 @@
+{
+  "name": "iterativo-api",
+  "version": "1.0.0",
+  "description": "startup product catalog backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ManoloEmp/iterativo-api.git"
+  },
+  "author": "Manuel Saenz para Iterativo SAS",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ManoloEmp/iterativo-api/issues"
+  },
+  "homepage": "https://github.com/ManoloEmp/iterativo-api#readme"
+}
