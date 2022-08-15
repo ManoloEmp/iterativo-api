@@ -1,0 +1,256 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model Product {
+  id                 String    @id @default(uuid())
+  createdAt          DateTime  @default(now()) @map(name: "created_at")
+  updatedAt          DateTime  @default(now()) @map(name: "updated_at")
+  name               Json
+  description        Json?
+  multimedia         Json?
+  supplier           Supplier? @relation(fields: [supplierId], references: [id])
+  supplierId         String?   @map(name: "supplier_id")
+  itemType           Type      @default(SOFTWARE) @map(name: "item_type")
+  credits            Json?
+  variant            Variant[]
+  tags               Json?
+  performance        Json?
+  category           Category?  @relation(fields: [categoryId], references: [id])
+  categoryId         String?    @map(name: "category_id")
+  catalogs           Catalog[]
+  roadMap            Json?           @map(name: "road_map")
+  backlog            Json?
+  published Boolean           @default(false)
+  @@map(name: "products")
+}
+
+model Supplier {
+  id                 String    @id @default(uuid())
+  createdAt          DateTime  @default(now()) @map(name: "created_at")
+  updatedAt          DateTime  @default(now()) @map(name: "updated_at")
+  name               Json
+  image              Json?
+  products           Product[]
+  markup             Float
+  contry             String
+  published Boolean           @default(false)
+  @@map(name: "suppliers")
+}
+
+model Variant {
+  id                 String    @id @default(uuid())
+  createdAt          DateTime  @default(now()) @map(name: "created_at")
+  updatedAt          DateTime  @default(now()) @map(name: "updated_at")
+  price              Float
+  performance        Json?
+  product            Product   @relation(fields: [productId], references: [id])
+  productId          String    @map(name: "product_id")
+  inventory          Int?
+  catalogs           Catalog[]
+  published Boolean           @default(false)
+  @@map(name: "variants")
+}
+
+model Category {
+  id                 String       @id @default(uuid())
+  createdAt          DateTime  @default(now()) @map(name: "created_at")
+  updatedAt          DateTime  @default(now()) @map(name: "updated_at")
+  name               Json
+  description        Json?
+  roll               Json?
+  image              Json?
+  tags               Json?
+  performance        Json?
+  complexity         Json?
+  manager            Manager?  @relation(fields: [managerId], references: [id])
+  managerId          String?   @map(name: "manager_id")
+  superId            String?   @map(name: "super_id")
+  super              Category?   @relation(name: "SuperSubcategory", fields: [superId], references: [id])
+  subcategories      Category[]   @relation(name: "SuperSubcategory")
+  products           Product[]
+  published Boolean  @default(false)
+  @@map(name: "categories")
+}
+
+model Manager {
+  id                 String    @id @default(uuid())
+  createdAt          DateTime  @default(now()) @map(name: "created_at")
+  updatedAt          DateTime  @default(now()) @map(name: "updated_at")
+  name               String
+  image              Json?
+  categories         Category[]
+  published Boolean           @default(false)
+  @@map(name: "managers")
+}
+
+model Catalog {
+  id                 String       @id @default(uuid())
+  createdAt          DateTime  @default(now()) @map(name: "created_at")
+  updatedAt          DateTime  @default(now()) @map(name: "updated_at")
+  name               Json
+  description        Json?
+  tags               Json?
+  image              Json?
+  products           Product[]
+  variants           Variant[]
+  published Boolean           @default(false)
+  @@map(name: "catalogs")
+}
+
+model Client {
+  id                 String       @id @default(cuid())
+  createdAt          DateTime     @default(now()) @map(name: "created_at")
+  updatedAt          DateTime     @default(now()) @map(name: "updated_at")
+  firstName          String       @map(name: "first_name")
+  lastName           String       @map(name: "last_name")
+  company            String?
+  use_case           Json?
+  comment            String
+  image              Json?
+  email              String       @unique
+  phone              String
+  deliveryInfo       Json         @map(name: "delivery_info")
+  paymentInfo        Json         @map(name: "payment_info")
+  orders             Order[]
+  @@map(name: "clients")
+}
+
+model Order {
+  id                 String       @id @default(uuid())
+  createdAt          DateTime     @default(now()) @map(name: "created_at")
+  updatedAt          DateTime     @default(now()) @map(name: "updated_at")
+  client             Client       @relation(fields: [clientId], references: [id])
+  clientId           String       @map(name: "client_id")
+  deliveryAddress    Json         @map(name: "delivery_address")
+  deliveryDetails    Json         @map(name: "delivery_details")
+  lineItems          Json         @map(name: "line_items")
+  deliveryDate       DateTime     @map(name: "delivery_date")
+  amount             Float
+  payment            Payment?
+  status             State        @default(PLACED)
+  @@map(name: "orders")
+}
+
+model Payment {
+  id                 String       @id @default(uuid())
+  createdAt          DateTime     @default(now()) @map(name: "created_at")
+  updatedAt          DateTime     @default(now()) @map(name: "updated_at")
+  order              Order        @relation(fields: [orderId], references: [id])
+  orderId            String       @unique @map(name: "order_id")
+  operator           String
+  account            Json
+  value              Float
+  transId            String       @unique @map(name: "transaction_id")
+  status             Status       @default(PENDING)
+  @@map(name: "payments")
+}
+
+model Project {
+  id                 String       @id @default(uuid())
+  createdAt          DateTime     @default(now()) @map(name: "created_at")
+  updatedAt          DateTime     @default(now()) @map(name: "updated_at")
+  brief              Json
+  teams              Team[]
+  members            Member[]
+  budget             Json?
+  timeline           Json?
+  proposals          Json?
+  stage              Stage        @default(PROPOSAL)
+  progress           Float?
+  @@map(name: "projects")
+
+}
+
+model Team {
+  id                 String       @id @default(uuid())
+  createdAt          DateTime     @default(now()) @map(name: "created_at")
+  updatedAt          DateTime     @default(now()) @map(name: "updated_at")
+  members            Member[]
+  projects           Project[]
+  @@map(name: "teams")
+}
+
+model Member {
+  id                 String       @id @default(cuid())
+  createdAt          DateTime     @default(now()) @map(name: "created_at")
+  updatedAt          DateTime     @default(now()) @map(name: "updated_at")
+  firstName          String       @map(name: "first_name")
+  lastName           String       @map(name: "last_name")
+  rol                Rol          @default(DEVELOPER)
+  country            String
+  image              Json?
+  email              String       @unique
+  phone              String
+  projects           Project[]
+  teams              Team[]
+  @@map(name: "members")
+}
+
+
+
+
+enum Status {
+  PAID
+  PENDING
+  REVERSED
+  CANCELLED
+  ERROR
+}
+
+enum Rol {
+  DEVELOPER
+  QA
+  PROJECT_MANAGER
+  SCRUM_MASTER
+  PRODUCT_OWNER
+  PRODUCER
+  COMPOSER
+  ARRANGER
+  STAFF
+  ENGINEER
+  ILLUSTRATOR
+  MUSICIAN
+  DESIGNER
+  DIRECTOR
+}
+
+enum Stage {
+  PROPOSAL
+  NEGOTIATION
+  DEVELOPMENT
+  CLOSED
+  CANCELLED
+}
+
+
+
+enum State {
+  PLACED
+  APROVED
+  CANCELLED
+  PREPARING
+  DISPATCHED
+  FULFILLED
+  ERROR
+}
+
+
+enum Type {
+  CONTENT
+  MUSIC
+  SOFTWARE
+  LIVE
+  BTL
+  MARKETING
+  BRANDING
+}
