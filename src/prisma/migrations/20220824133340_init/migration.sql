@@ -86,8 +86,12 @@ CREATE TABLE "managers" (
     "id" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "name" TEXT NOT NULL,
+    "first_name" TEXT NOT NULL,
+    "last_name" TEXT NOT NULL,
+    "job_description" JSONB,
     "image" JSONB,
+    "email" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
     "published" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "managers_pkey" PRIMARY KEY ("id")
@@ -162,7 +166,8 @@ CREATE TABLE "projects" (
     "id" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "brief" JSONB NOT NULL,
+    "name" JSONB NOT NULL,
+    "description" JSONB,
     "budget" JSONB,
     "timeline" JSONB,
     "proposals" JSONB,
@@ -173,10 +178,30 @@ CREATE TABLE "projects" (
 );
 
 -- CreateTable
+CREATE TABLE "briefs" (
+    "id" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "client_id" TEXT NOT NULL,
+    "resume" TEXT NOT NULL,
+    "problems" JSONB,
+    "must_have" JSONB,
+    "stakeholder" JSONB,
+    "product_id" TEXT NOT NULL,
+    "budget" DOUBLE PRECISION,
+    "start_date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "end_date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "briefs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "teams" (
     "id" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "name" JSONB NOT NULL,
+    "description" JSONB,
 
     CONSTRAINT "teams_pkey" PRIMARY KEY ("id")
 );
@@ -188,6 +213,7 @@ CREATE TABLE "members" (
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "first_name" TEXT NOT NULL,
     "last_name" TEXT NOT NULL,
+    "job_description" JSONB,
     "rol" "Rol" NOT NULL DEFAULT 'DEVELOPER',
     "country" TEXT NOT NULL,
     "image" JSONB,
@@ -195,6 +221,12 @@ CREATE TABLE "members" (
     "phone" TEXT NOT NULL,
 
     CONSTRAINT "members_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "_ProductToProject" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL
 );
 
 -- CreateTable
@@ -228,6 +260,9 @@ CREATE TABLE "_MemberToTeam" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "managers_email_key" ON "managers"("email");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "clients_email_key" ON "clients"("email");
 
 -- CreateIndex
@@ -237,7 +272,16 @@ CREATE UNIQUE INDEX "payments_order_id_key" ON "payments"("order_id");
 CREATE UNIQUE INDEX "payments_transaction_id_key" ON "payments"("transaction_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "briefs_product_id_key" ON "briefs"("product_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "members_email_key" ON "members"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_ProductToProject_AB_unique" ON "_ProductToProject"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_ProductToProject_B_index" ON "_ProductToProject"("B");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_CatalogToProduct_AB_unique" ON "_CatalogToProduct"("A", "B");
@@ -289,6 +333,18 @@ ALTER TABLE "orders" ADD CONSTRAINT "orders_client_id_fkey" FOREIGN KEY ("client
 
 -- AddForeignKey
 ALTER TABLE "payments" ADD CONSTRAINT "payments_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "briefs" ADD CONSTRAINT "briefs_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "clients"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "briefs" ADD CONSTRAINT "briefs_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_ProductToProject" ADD CONSTRAINT "_ProductToProject_A_fkey" FOREIGN KEY ("A") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_ProductToProject" ADD CONSTRAINT "_ProductToProject_B_fkey" FOREIGN KEY ("B") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_CatalogToProduct" ADD CONSTRAINT "_CatalogToProduct_A_fkey" FOREIGN KEY ("A") REFERENCES "catalogs"("id") ON DELETE CASCADE ON UPDATE CASCADE;

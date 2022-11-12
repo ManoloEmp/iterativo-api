@@ -21,8 +21,10 @@ model Product {
   supplier           Supplier? @relation(fields: [supplierId], references: [id])
   supplierId         String?   @map(name: "supplier_id")
   itemType           Type      @default(SOFTWARE) @map(name: "item_type")
+  projects           Project[]
   credits            Json?
   variant            Variant[]
+  brief              Brief?
   tags               Json?
   performance        Json?
   category           Category?  @relation(fields: [categoryId], references: [id])
@@ -86,8 +88,12 @@ model Manager {
   id                 String    @id @default(uuid())
   createdAt          DateTime  @default(now()) @map(name: "created_at")
   updatedAt          DateTime  @default(now()) @map(name: "updated_at")
-  name               String
+  firstName          String       @map(name: "first_name")
+  lastName           String       @map(name: "last_name")
+  jobDescription     Json?        @map(name: "job_description")
   image              Json?
+  email              String       @unique
+  phone              String
   categories         Category[]
   published Boolean           @default(false)
   @@map(name: "managers")
@@ -116,6 +122,7 @@ model Client {
   company            String?
   use_case           Json?
   comment            String
+  briefs             Brief[]
   image              Json?
   email              String       @unique
   phone              String
@@ -159,7 +166,9 @@ model Project {
   id                 String       @id @default(uuid())
   createdAt          DateTime     @default(now()) @map(name: "created_at")
   updatedAt          DateTime     @default(now()) @map(name: "updated_at")
-  brief              Json
+  name               Json
+  description        Json?
+  products           Product[]
   teams              Team[]
   members            Member[]
   budget             Json?
@@ -171,10 +180,31 @@ model Project {
 
 }
 
+model Brief {
+  id                 String       @id @default(uuid())
+  createdAt          DateTime     @default(now()) @map(name: "created_at")
+  updatedAt          DateTime     @default(now()) @map(name: "updated_at")
+  client             Client       @relation(fields: [clientId], references: [id])
+  clientId           String       @map(name: "client_id")
+  resume             String
+  problems           Json?
+  mustHave           Json?        @map(name: "must_have")
+  stakeholder        Json?
+  product            Product?     @relation(fields: [productId], references: [id])
+  productId          String       @unique @map(name: "product_id")
+  budget             Float?
+  startDate          DateTime     @default(now()) @map(name: "start_date")
+  endDate            DateTime     @default(now()) @map(name: "end_date")
+  @@map(name: "briefs")
+
+}
+
 model Team {
   id                 String       @id @default(uuid())
   createdAt          DateTime     @default(now()) @map(name: "created_at")
   updatedAt          DateTime     @default(now()) @map(name: "updated_at")
+  name               Json
+  description        Json?
   members            Member[]
   projects           Project[]
   @@map(name: "teams")
@@ -186,6 +216,7 @@ model Member {
   updatedAt          DateTime     @default(now()) @map(name: "updated_at")
   firstName          String       @map(name: "first_name")
   lastName           String       @map(name: "last_name")
+  jobDescription     Json?        @map(name: "job_description")
   rol                Rol          @default(DEVELOPER)
   country            String
   image              Json?
